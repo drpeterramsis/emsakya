@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إمساكية رمضان - مصر</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: rtl;
+            background-color: #f8f8f8;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+        h2 { color: #d35400; }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #d35400;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>إمساكية رمضان - مصر</h2>
+
+        <label for="city">اختر المدينة:</label>
+        <select id="city" onchange="updatePrayerTimes()">
+            <option value="31.2001,29.9187">الإسكندرية</option>
+            <option value="30.0444,31.2357">القاهرة</option>
+            <option value="30.6125,32.2654">الإسماعيلية</option>
+            <option value="31.0409,31.3785">المنصورة</option>
+        </select>
+
+        <label for="date">اختر التاريخ:</label>
+        <input type="date" id="date" onchange="updatePrayerTimes()">
+
+        <table>
+            <tr>
+                <th>الصلاة</th>
+                <th>الوقت</th>
+            </tr>
+            <tr><td>الإمساك</td><td id="imsak">-</td></tr>
+            <tr><td>الفجر</td><td id="fajr">-</td></tr>
+            <tr><td>المغرب</td><td id="maghrib">-</td></tr>
+            <tr><td>العشاء</td><td id="isha">-</td></tr>
+        </table>
+    </div>
+
+    <script>
+        async function updatePrayerTimes() {
+            const selectedDate = document.getElementById("date").value;
+            const [latitude, longitude] = document.getElementById("city").value.split(",");
+
+            if (!selectedDate) return;
+
+            const [year, month, day] = selectedDate.split("-");
+
+            // استخدام الهيئة المصرية للمساحة كطريقة حساب
+            const apiUrl = `https://api.aladhan.com/v1/timings/${day}-${month}-${year}?latitude=${latitude}&longitude=${longitude}&method=5&school=0`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    document.getElementById("imsak").textContent = data.data.timings.Imsak;
+                    document.getElementById("fajr").textContent = data.data.timings.Fajr;
+                    document.getElementById("maghrib").textContent = data.data.timings.Maghrib;
+                    document.getElementById("isha").textContent = data.data.timings.Isha;
+                } else {
+                    console.error("Error fetching prayer times:", data);
+                }
+            } catch (error) {
+                console.error("Error fetching data:", error);
+            }
+        }
+
+        // ضبط التاريخ الافتراضي على اليوم الحالي
+        document.addEventListener("DOMContentLoaded", function() {
+            const today = new Date().toISOString().split("T")[0];
+            document.getElementById("date").value = today;
+            updatePrayerTimes();
+        });
+    </script>
+
+</body>
+</html>
